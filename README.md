@@ -94,7 +94,7 @@ See [DATA_CONTRACT.md](DATA_CONTRACT.md) for full schema & validation rules.
 
 Built by Andika Bhaskara as part of portfolio for Data Platform Engineer roles.
 
-[LinkedIn](#) | [Blog Post](#)
+**[LinkedIn](https://id.linkedin.com/in/mohamad-andika-bhaskara) | [Medium](https://medium.com/@AndikaBhas/about)**
 
 
 ========================================
