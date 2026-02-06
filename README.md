@@ -39,8 +39,8 @@ Open-Meteo API → AWS Lambda → S3 (raw) → dbt → S3 (staging/mart)
 
 ```bash
 # Clone repo
-git clone https://github.com/andikabhaskara/weather-dq-platform.git
-cd weather-dq-platform
+git clone https://github.com/andikabhaskara/weather-data-quality-platform.git
+cd weather-data-quality-platform
 
 # Setup environment
 python3 -m venv venv
@@ -109,44 +109,33 @@ Architecture diagram (simple boxes/arrows)
 ┌─────────────────┐
 │  Open-Meteo API │ (External data source)
 └────────┬────────┘
-         │ 1. Python script fetches weather data every hour
+         │ 2. Write raw JSON to S3
          ▼
 ┌─────────────────┐
-│   GCP Pub/Sub   │ (Message queue - buffers data)
+│  S3 (raw-data/) │ (Partitioned: s3://bucket/raw/year=2026/month=01/day=30/)
 └────────┬────────┘
-         │ 2. Pub/Sub triggers function to load data
+         │ 3. Lambda triggers dbt (via ECS Fargate free tier)
          ▼
 ┌─────────────────┐
-│  BigQuery (raw) │ (Data warehouse - stores raw JSON)
+│  dbt transforms │ (Reads S3 via Athena, writes to S3 staging/)
 └────────┬────────┘
-         │ 3. dbt transforms raw → clean tables
+         │ 4. Creates clean Parquet files
          ▼
 ┌─────────────────┐
-│ BigQuery (mart) │ (Clean, modeled data)
+│ S3 (staging/)   │ (Partitioned, Parquet format)
 └────────┬────────┘
-         │ 4. Python runs data quality checks
+         │ 5. Lambda runs Great Expectations checks
          ▼
 ┌─────────────────┐
-│  DQ Results     │ (Pass/Fail metrics stored in BigQuery)
+│ S3 (dq-results/)│ (JSON reports + metrics)
 └────────┬────────┘
-         │ 5. Airflow orchestrates steps 1-4 daily
+         │ 6. Athena queries all layers (dashboard reads this)
          ▼
 ┌─────────────────┐
-│    Dashboard    │ (Streamlit - visualizes DQ metrics)
+│  Streamlit on   │ (Deployed on AWS EC2 free tier or Streamlit Cloud)
+│  EC2 / Cloud    │
 └─────────────────┘
 
-Infrastructure: Terraform provisions all GCP resources
-CI/CD: GitHub Actions deploys code changes
-
-Input: Fetch weather for 10 cities (Jakarta, Singapore, Tokyo, etc.) every hour
-Storage: Save raw JSON to BigQuery
-Transform (dbt): Create clean tables (staging → mart)
-Quality checks:
-Are temperatures within valid range (-50°C to 60°C)?
-Is any data missing?
-Does Singapore temp match expected pattern?
-Orchestrate: Airflow runs this daily
-Visualize: Streamlit dashboard shows "95% data passed quality checks"
-
-Tech stack: Python, GCP Pub/Sub, BigQuery, dbt, Airflow, Terraform
-
+Infrastructure: Terraform (provisions all AWS resources)
+CI/CD: GitHub Actions (tests dbt, deploys Lambda)
+Monitoring: CloudWatch Alarms + SNS alerts
