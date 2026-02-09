@@ -24,3 +24,7 @@ logs/
 .DS_Store
 Thumbs.db
 STRUCTURE.md
+
+#Lambda packaging artifacts
+lambda_package/
+weather_ingestion_lambda.zip
