@@ -56,11 +56,10 @@ def validate_data(raw_json: dict, city: City) -> WeatherAPIResponse | None:
             logger.error(f"   Field '{field}': {error['msg']}")
 
         return None
-        pass
 
 
 # Function to save raw data
-def save_raw_data(city: City, data: dict, timestamp: datetime) -> None:
+def save_raw_data(city: City, data: dict, timestamp: datetime) -> str:
   """
   Save raw API response to S3 (when on Lambda) or local (when testing).
   
@@ -81,6 +80,8 @@ def save_raw_data(city: City, data: dict, timestamp: datetime) -> None:
     import boto3
 
     bucket_name = os.getenv('S3_BUCKET_NAME')
+    if not bucket_name:
+        raise ValueError("S3_BUCKET_NAME environment variable is not set")
     s3_client = boto3.client('s3')
 
     #S3 key (path)

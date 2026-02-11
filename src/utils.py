@@ -34,7 +34,7 @@ def fetch_api_with_retry(url:str , params: dict, max_retries: int = 3, timeout: 
       response.raise_for_status()
       return response.json()
     except RequestException as e:
-      logger.info(f"Retries {attempt/max_retries} failed: " + {e})
+      logger.info(f"Retries {attempt}/{max_retries} failed: {e}")
 
       if attempt < max_retries:
         wait_time = 2 ** attempt
