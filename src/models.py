@@ -5,7 +5,7 @@ from typing import Annotated
 class HourlyData(BaseModel):
   time: list[str]
   temperature_2m: list[float]
-  relative_humidity_2m: list[int]
+  relative_humidity_2m: list[float]
   weather_code: list[int]
   wind_speed_10m: list[float]
   precipitation: list[float]
@@ -37,20 +37,23 @@ class HourlyData(BaseModel):
     return values
 
   @field_validator('weather_code', mode='after')
-  def check_weather_code_range(cls, values: list[float]) -> list[float]:
+  @classmethod
+  def check_weather_code_range(cls, values: list[int]) -> list[int]:
     for value in values:
       if not 0 <= value <= 99:
-        raise ValueError(f"Humidity {value} code out of valid range (0 to 99)")
+        raise ValueError(f"Weather code {value} out of valid range (0 to 99)")
     return values
 
   @field_validator('wind_speed_10m', mode='after')
+  @classmethod
   def check_wind_speed_range(cls, values: list[float]) -> list[float]:
     for value in values:
       if not 0 <= value <= 400:
-        raise ValueError(f"Humidity {value}km/h out of valid range (0 to 400)")
+        raise ValueError(f"Wind speed {value}km/h out of valid range (0 to 400)")
     return values
 
   @field_validator('precipitation', mode='after')
+  @classmethod
   def check_precipitation_range(cls, values: list[float]) -> list[float]:
     for value in values:
       if not 0 <= value <= 500:
