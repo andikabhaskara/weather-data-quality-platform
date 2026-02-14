@@ -1,5 +1,5 @@
 #!/bin/bash
-#Script to package Lambda fuction with dependencies
+#Script to package Lambda function with dependencies
 # Exit immediately if a command exits with a non-zero status
 set -e
 
@@ -18,7 +18,7 @@ mkdir -p "$PACKAGE_DIR"
 
 #Install dependencies to lambda_package/
 echo "Installing dependencies from $REPO_ROOT/requirements.txt..."
-pip install -r "$REPO_ROOT/requirements.txt" -t "$PACKAGE_DIR" --quiet --no-cache-dir
+pip install -r "$REPO_ROOT/requirements.txt" -t "$PACKAGE_DIR" --platform manylinux2014_x86_64 --python-version 3.11 --only-binary=:all: --quiet --no-cache-dir
 
 #Copy source code (Avoiding hidden files)
 echo "Copying source code..."

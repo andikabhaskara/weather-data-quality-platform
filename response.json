@@ -1,0 +1,1 @@
+{"statusCode": 200, "body": "{\"message\": \"Weather ingestion pipeline is successful\", \"timestamp\": \"2026-02-14T16:50:45.741212\", \"result\": {\"success_count\": 3, \"failure_count\": 0, \"total_records\": 2160, \"cities_processed\": [\"New York\", \"Singapore\", \"Tokyo\"]}}"}

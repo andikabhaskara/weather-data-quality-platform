@@ -9,21 +9,28 @@ from pydantic import ValidationError
 
 from config import (
     API_URL, TIMEOUT_IN_SECONDS, MAX_RETRIES, DELAY_BETWEEN_CITIES,
-    CITIES, HISTORY_DAYS, HOURLY_METRICS, RAW_DATA_PATH, LOG_PATH, City
+    CITIES, HISTORY_DAYS, HOURLY_METRICS, RAW_DATA_PATH, LOG_PATH, City, IS_LAMBDA
 )
 from models import WeatherAPIResponse
 from utils import get_date_range, fetch_api_with_retry
 
-# Setup logging
-Path(LOG_PATH).mkdir(exist_ok=True)
-logging.basicConfig(
+if IS_LAMBDA:
+    # Lambda: Log to CloudWatch, no file logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+else:
+    # Local: create logs directory and log to file
+    Path(LOG_PATH).mkdir(exist_ok=True)
+    logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler(f'{LOG_PATH}/ingestion_{datetime.now().strftime("%Y%m%d")}.log'),
         logging.StreamHandler()
-    ]
-)
+    ])
+    
 logger = logging.getLogger(__name__)
 
 # Function to validate data contract
