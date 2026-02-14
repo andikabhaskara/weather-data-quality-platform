@@ -45,10 +45,11 @@ def lambda_handler(event, context):
         logger.error(f"Lambda execution failed: {str(e)}", exc_info=True)
 
         return {
-            'statusCode': 200,
+            'statusCode': 500,
             'body': json.dumps({
-                'message': 'Weather ingestion pipeline is failing',
+                'message': 'Weather ingestion pipeline is failed',
                 'error': str(e),
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now().isoformat(),
+                'request_id': context.request_id
             })
         }

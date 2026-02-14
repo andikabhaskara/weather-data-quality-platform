@@ -25,7 +25,7 @@ def fetch_api_with_retry(url:str , params: dict, max_retries: int = 3, timeout: 
   Fetch data weather api with retries
 
   Returns:
-    dict: API response when sucessful
+    dict: API response when successful
     None: if all retries fail
   """
   for attempt in range(1, max_retries + 1):
@@ -34,7 +34,7 @@ def fetch_api_with_retry(url:str , params: dict, max_retries: int = 3, timeout: 
       response.raise_for_status()
       return response.json()
     except RequestException as e:
-      logger.info(f"Retries {attempt}/{max_retries} failed: {e}")
+      logger.error(f"Retries {attempt}/{max_retries} failed: {e}")
 
       if attempt < max_retries:
         wait_time = 2 ** attempt

@@ -38,7 +38,7 @@ class HourlyData(BaseModel):
 
   @field_validator('weather_code', mode='after')
   @classmethod
-  def check_weather_code_range(cls, values: list[float]) -> list[float]:
+  def check_weather_code_range(cls, values: list[int]) -> list[int]:
     for value in values:
       if not 0 <= value <= 99:
         raise ValueError(f"Weather code {value} out of valid range (0 to 99)")

@@ -27,4 +27,5 @@ STRUCTURE.md
 
 #Lambda packaging artifacts
 lambda_package/
+lamba_dist/
 weather_ingestion_lambda.zip

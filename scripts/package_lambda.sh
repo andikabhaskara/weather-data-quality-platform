@@ -18,7 +18,7 @@ mkdir -p "$PACKAGE_DIR"
 
 #Install dependencies to lambda_package/
 echo "Installing dependencies from $REPO_ROOT/requirements.txt..."
-pip install -r "$REPO_ROOT/requirements.txt" -t "$PACKAGE_DIR" --quiet
+pip install -r "$REPO_ROOT/requirements.txt" -t "$PACKAGE_DIR" --quiet --no-cache-dir
 
 #Copy source code (Avoiding hidden files)
 echo "Copying source code..."
