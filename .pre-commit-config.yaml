@@ -1,0 +1,23 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+    -   id: detect-private-key
+    -   id: check-json
+    -   id: check-yaml
+    -   id: check-added-large-files # Prevents pushing huge log files
+
+-   repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+    -   id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+
+-   repo: local
+    hooks:
+    -   id: s3-leak-protection
+        name: S3 and AWS Secret Protection
+        # This regex covers AKIA keys and S3 paths with any characters
+        entry: 'AKIA[0-9A-Z]{16}|s3://[a-zA-Z0-9.\-_/]+'
+        language: pygrep
+        always_run: true
