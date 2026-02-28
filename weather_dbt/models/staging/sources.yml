@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw_layer
+    database: awsdatacatalog
+    schema: weather_data_lake  # This must match your Athena Database name
+    tables:
+      - name: raw_weather      # This must match the table name in Athena
+        description: "Raw weather JSON data from S3"

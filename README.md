@@ -7,14 +7,11 @@ A production data engineering pipeline that ingests, transforms, and monitors we
 - Build end-to-end data pipeline from ingestion to visualization
 - Implement comprehensive data quality framework
 - Demonstrate infrastructure-as-code best practices
-- Showcase skills relevant to Big Tech and Middle East tech companies
+- Showcase skills relevant to Big Tech companies
 
 ## 🏗️ Architecture
 
-```
-Open-Meteo API → AWS Lambda → S3 (raw) → dbt → S3 (staging/mart) 
-→ Great Expectations → Athena → Streamlit Dashboard
-```
+![Architecture](docs/architecture.png)
 
 **Orchestration:** Apache Airflow  
 **Infrastructure:** Terraform  
@@ -24,7 +21,7 @@ Open-Meteo API → AWS Lambda → S3 (raw) → dbt → S3 (staging/mart)
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| Cloud | AWS | Free tier, MENA region presence |
+| Cloud | AWS | Free tier |
 | Storage | S3 + Athena | Serverless data lake |
 | Compute | Lambda | Event-driven ingestion |
 | Transformation | dbt | SQL-based analytics engineering |
@@ -86,9 +83,9 @@ See [DATA_CONTRACT.md](DATA_CONTRACT.md) for full schema & validation rules.
 - ✅ API integration with error handling
 - ✅ Data validation using Pydantic
 - ✅ Logging best practices
-- 🚧 AWS Lambda deployment
-- 🚧 dbt transformation patterns
-- 🚧 Data quality monitoring
+- ✅ AWS Lambda deployment
+- ✅ dbt transformation patterns
+- ✅ Data quality monitoring
 
 ## 📧 Contact
 

@@ -1,0 +1,17 @@
+unit_tests:
+  - name: test_untest_logic
+    model: stg_weather_hourly
+    given:
+      - input: source('raw_layer', 'raw_weather')
+        rows:
+          - city: 'Singapore'
+            # Pass as a nested YAML object, not a string
+            raw_response: 
+              hourly: 
+                time: ["2026-01-01T00:00"]
+                temperature_2m: [25.5]
+    expect:
+      rows:
+        - city: 'Singapore'
+          timestamp: "2026-01-01T00:00"
+          temperature_c: 25.5

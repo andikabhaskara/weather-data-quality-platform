@@ -29,3 +29,4 @@ STRUCTURE.md
 lambda_package/
 lambda_dist/
 weather_ingestion_lambda.zip
+response.json

@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: daily_weather_summary
+    description: "Gold layer table providing daily aggregated weather metrics per city. Used for BI reporting."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [city, country, forecast_date]
+    columns:
+      - name: city
+        description: "Name of the city (e.g., Tokyo)."
+        tests:
+          - not_null
+      - name: forecast_date
+        description: "The date of the weather forecast."
+        tests:
+          - not_null
+      - name: avg_temperature_c
+        description: "Average temperature in Celsius for the day."
+        tests:
+          - not_null
+          # Example of a custom threshold test
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: -60
+              max_value: 60

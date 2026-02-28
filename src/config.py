@@ -1,5 +1,6 @@
 """Configuration settings for weather data ingestion"""
 from dataclasses import dataclass
+import os
 
 #Api Configuration
 API_URL = "https://archive-api.open-meteo.com/v1/archive"
@@ -32,5 +33,13 @@ CITIES = [
 ]
 
 # Storage Configuration
-RAW_DATA_PATH = "data/raw"
-LOG_PATH = "logs"
+IS_LAMBDA = os.getenv('AWS_LAMBDA_FUNCTION_NAME') is not None
+
+if IS_LAMBDA:
+  #Lambda environment
+  RAW_DATA_PATH = "/tmp/data/raw"
+  LOG_PATH = ".tmp/logs"
+else:
+  #Local environment
+  RAW_DATA_PATH = "data/raw"
+  LOG_PATH = "logs"

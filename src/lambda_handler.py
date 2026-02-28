@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 from ingestion import main as run_ingestion
 
-# Lambda uses its own logging config
+# Lambda uses CloudWatch Logs, so we set up logging to output there
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -24,13 +24,15 @@ def lambda_handler(event, context):
     """
     logger.info("=" * 50)
     logger.info("Lambda function invoked")
-    logger.info(f"Request ID: {context.request_id}")
+    logger.info(f"Request ID: {context.aws_request_id}")
     logger.info(f"Event: {json.dumps(event)}")
     logger.info("=" * 50)
 
     try:
         #Run the ingestion pipeline
         result = run_ingestion()
+
+        logger.info("Lambda execution completed successfully")
 
         return {
             'statusCode': 200,
@@ -50,6 +52,6 @@ def lambda_handler(event, context):
                 'message': 'Weather ingestion pipeline is failed',
                 'error': str(e),
                 'timestamp': datetime.now().isoformat(),
-                'request_id': context.request_id
+                'request_id': context.aws_request_id
             })
         }
