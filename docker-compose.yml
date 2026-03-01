@@ -1,0 +1,43 @@
+# =============================================================================
+# Docker Compose for Weather Data Quality Platform
+# =============================================================================
+services:
+  # ---------------------------------------------------------------------------
+  # Service 1: Weather Data Ingestion
+  # ---------------------------------------------------------------------------
+  # Runs the pipeline once and exits (batch process, not a long-running service)
+  ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weather-ingestion
+    environment:
+      - APP_ENV=local
+      - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    command: ["python", "src/ingestion.py"]
+
+  # ---------------------------------------------------------------------------
+  # Service 2: Streamlit Dashboard
+  # ---------------------------------------------------------------------------
+  # Long-running web server — stays up until you stop it
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weather-dashboard
+    ports:
+      # access the dashboard at http://localhost:8501
+      - "8501:8501"
+    environment:
+      - APP_ENV=local
+      - PYTHONPATH=/app
+    volumes:
+      # Simulates the S3 → Athena → Dashboard flow, but locally
+      - ./data:/app/data
+    # For MVP only. In production, we will use healthchecks.
+    depends_on:
+      - ingestion
+    command: ["streamlit", "run", "dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

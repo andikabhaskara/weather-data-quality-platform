@@ -1,0 +1,86 @@
+# =============================================================================
+# CI Pipeline for Weather Data Quality Platform
+# =============================================================================
+# Configuration steps:
+# 1. Lint
+# 2. Test
+# 3. Security
+# 4. Docker
+# =============================================================================
+
+name: CI Pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout and set up Python
+        uses: ./.github/actions/setup-python-env
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependency
+
+      - name: Run Ruff linter
+        run: ruff check src/ tests/ dashboard/
+
+      - name: Run Ruff formatter check
+        run: ruff format --check src/ tests/ dashboard/
+
+  test:
+    name: Test & Coverage
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout and set up Python
+        uses: ./.github/actions/setup-python-env
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependency
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-fail-under=70 \
+            -v
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout and set up Python
+        uses: ./.github/actions/setup-python-env
+
+      - name: Install detect-secrets
+        run: pip install detect-secrets
+
+      - name: Run secret detection
+        run: |
+          detect-secrets scan --baseline .secrets.baseline
+          detect-secrets audit --report .secrets.baseline
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t weather-data-quality-platform:${{ github.sha }} .
+
+      - name: Verify Docker image
+        run: |
+          docker images weather-data-quality-platform:${{ github.sha }}

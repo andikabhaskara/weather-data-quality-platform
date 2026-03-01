@@ -1,0 +1,23 @@
+# =============================================================================
+# Ruff Configuration
+# =============================================================================
+target-version = "py311"
+
+line-length = 120 #modern standard
+
+[lint]
+# E = pycodestyle errors (basic Python style)
+# F = pyflakes (catches unused imports, undefined names — actual bugs)
+# I = isort (import sorting — makes code scannable)
+# W = pycodestyle warnings
+# UP = pyupgrade (modernizes Python syntax, e.g., dict() → {})
+select = ["E", "F", "I", "W", "UP"]
+
+# E402 = module level import not at top. for boto3 conditional import
+ignore = ["E501", "E402"]
+
+[lint.per-file-ignores]
+"tests/*" = ["F401", "F811"]
+
+[format]
+quote-style = "double"

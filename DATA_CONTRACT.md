@@ -9,7 +9,7 @@
 ## 2. Scope
 - **Locations**:
   - New York (40.7128, -74.0060)
-  - London (51.5074, -0.1278)
+  - Singapore (1.28688, 103.85434)
   - Tokyo (35.6762, 139.6503)
 - **Time Range**: Rolling 30-day window
 - **Granularity**: Hourly
@@ -27,7 +27,7 @@ Stores API responses as-is for audit trail.
 | `latitude` | FLOAT64 | Location latitude | NOT NULL |
 | `longitude` | FLOAT64 | Location longitude | NOT NULL |
 | `raw_json` | JSON | Full API response | NOT NULL |
-| `partition_date` | DATE | For BigQuery partitioning | NOT NULL |
+| `partition_date` | DATE | For Athena partitioning | NOT NULL |
 
 ### 3.2 Staging Table (`stg_weather`)
 Cleaned, flattened data.
@@ -87,7 +87,7 @@ Analytics-ready with quality flags.
 - **Partial data**: Load available data, flag missing locations
 
 ## 6. Cost Controls
-- **BigQuery partitioning**: By `partition_date` (prune queries)
+- **Athena partitioning**: By `partition_date` (prune queries)
 - **Clustering**: By `location_name`, `event_timestamp`
 - **Retention**: Keep raw data 90 days, marts 1 year
 

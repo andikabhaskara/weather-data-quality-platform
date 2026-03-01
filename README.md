@@ -12,6 +12,24 @@ A production data engineering pipeline that ingests, transforms, and monitors we
 ## 🏗️ Architecture
 
 ![Architecture](docs/architecture.png)
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    A[Open-Meteo API] -->|HTTP| B[AWS Lambda<br>Python + Pydantic]
+    B -->|Validated JSON| C[S3 Raw Layer<br>Hive Partitioned]
+    C -->|Athena| D[dbt Staging<br>stg_weather_hourly]
+    D --> E[dbt Analytics<br>daily_weather_summary]
+    E --> F[Streamlit Dashboard<br>DQ Monitoring]
+    
+    G[EventBridge] -->|Daily Trigger| B
+    H[GitHub Actions] -->|CI/CD| B
+    
+    style B fill:#ff9900,color:#000
+    style C fill:#569a31,color:#fff
+    style D fill:#4a90d9,color:#fff
+    style F fill:#ff4b4b,color:#fff
+```
 
 **Orchestration:** Apache Airflow  
 **Infrastructure:** Terraform  

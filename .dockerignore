@@ -1,0 +1,43 @@
+# =============================================================================
+# .dockerignore — keeps Docker build context lean
+# =============================================================================
+# git artifacts
+.git
+.gitignore
+
+# Python artifacts
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# Data & Logs
+data/
+logs/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# docs and github files (not needed in Docker image)
+.github/
+docs/
+*.md
+!DATA_CONTRACT.md
+STRUCTURE.md
+
+# Secrets & Environment variables
+.env
+.secrets.baseline
+
+# Lambda packaging artifacts
+lambda_package/
+lambda_dist/
+weather_ingestion_lambda.zip
+response.json
+
+# Linting and formatting artifacts
+.ruff_cache/

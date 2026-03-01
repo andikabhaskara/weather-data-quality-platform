@@ -1,37 +1,47 @@
 """Main weather data ingestion pipeline"""
-import logging
+
 import json
+import logging
 import os
 import time
 from datetime import datetime
 from pathlib import Path
+
 from pydantic import ValidationError
 
 from config import (
-    API_URL, TIMEOUT_IN_SECONDS, MAX_RETRIES, DELAY_BETWEEN_CITIES,
-    CITIES, HISTORY_DAYS, HOURLY_METRICS, RAW_DATA_PATH, LOG_PATH, City, IS_LAMBDA
+    API_URL,
+    CITIES,
+    DELAY_BETWEEN_CITIES,
+    HISTORY_DAYS,
+    HOURLY_METRICS,
+    IS_LAMBDA,
+    LOG_PATH,
+    MAX_RETRIES,
+    RAW_DATA_PATH,
+    TIMEOUT_IN_SECONDS,
+    City,
 )
 from models import WeatherAPIResponse
-from utils import get_date_range, fetch_api_with_retry
+from utils import fetch_api_with_retry, get_date_range
 
 if IS_LAMBDA:
     # Lambda: Log to CloudWatch, no file logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s'
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 else:
     # Local: create logs directory and log to file
     Path(LOG_PATH).mkdir(exist_ok=True)
     logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(f'{LOG_PATH}/ingestion_{datetime.now().strftime("%Y%m%d")}.log'),
-        logging.StreamHandler()
-    ])
-    
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(f"{LOG_PATH}/ingestion_{datetime.now().strftime('%Y%m%d')}.log"),
+            logging.StreamHandler(),
+        ],
+    )
+
 logger = logging.getLogger(__name__)
+
 
 # Function to validate data contract
 def validate_data(raw_json: dict, city: City) -> WeatherAPIResponse | None:
@@ -59,7 +69,7 @@ def validate_data(raw_json: dict, city: City) -> WeatherAPIResponse | None:
         logger.error(f"   Validation errors: {e.errors()}")
 
         for error in e.errors():
-            field = " -> ".join(str(loc) for loc in error['loc'])
+            field = " -> ".join(str(loc) for loc in error["loc"])
             logger.error(f"   Field '{field}': {error['msg']}")
 
         return None
@@ -67,77 +77,72 @@ def validate_data(raw_json: dict, city: City) -> WeatherAPIResponse | None:
 
 # Function to save raw data
 def save_raw_data(city: City, data: dict, timestamp: datetime) -> str:
-  """
-  Save raw API response to S3 (when on Lambda) or local (when testing).
-  
-  Returns:
-    str: File path where data was saved
+    """
+    Save raw API response to S3 (when on Lambda) or local (when testing).
 
-  File structure: data/raw/year=2026/month=02/day=01/newyork_20260201_120000.json
-  """
-  # Detect if running on Lambda
-  is_lambda = os.getenv('AWS_LAMBDA_FUNCTION_NAME') is not None
-  
-  # Create directory structure
-  date_str = timestamp.strftime("%Y%m%d")
-  time_str = timestamp.strftime("%H%M%S")
+    Returns:
+      str: File path where data was saved
 
-  if is_lambda:
-    #Lambda: save to /tmp first, then upload to S3
-    import boto3
+    File structure: data/raw/year=2026/month=02/day=01/newyork_20260201_120000.json
+    """
+    # Detect if running on Lambda
+    is_lambda = os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
 
-    bucket_name = os.getenv('S3_BUCKET_NAME')
-    if not bucket_name:
-        raise ValueError("S3_BUCKET_NAME environment variable is not set")
-    s3_client = boto3.client('s3')
+    # Create directory structure
+    date_str = timestamp.strftime("%Y%m%d")
+    time_str = timestamp.strftime("%H%M%S")
 
-    #S3 key (path)
-    s3_key = f"raw/year={timestamp.year}/month={timestamp.month:02d}/day={timestamp.day:02d}/{city.name.lower()}_{date_str}_{time_str}.json"
+    if is_lambda:
+        # Lambda: save to /tmp first, then upload to S3
+        import boto3
 
-    output = {
-        "ingested_at": timestamp.isoformat(),
-        "city": city.name,
-        "latitude": city.latitude,
-        "longitude": city.longitude,
-        "country": city.country,
-        "raw_response": data
-    }
+        bucket_name = os.getenv("S3_BUCKET_NAME")
+        if not bucket_name:
+            raise ValueError("S3_BUCKET_NAME environment variable is not set")
+        s3_client = boto3.client("s3")
 
-    #Upload to S3
-    s3_client.put_object(
-        Bucket=bucket_name,
-        Key=s3_key,
-        Body=json.dumps(output),
-        ContentType='application/json'
-    )
+        # S3 key (path)
+        s3_key = f"raw/year={timestamp.year}/month={timestamp.month:02d}/day={timestamp.day:02d}/{city.name.lower()}_{date_str}_{time_str}.json"
 
-    logger.info(f"✅ Saved to S3: s3://{bucket_name}/{s3_key}")
-    return f"s3://{bucket_name}/{s3_key}"
-  
-  else:
-    #local: save to data/raw/
-    output_dir = Path(f"{RAW_DATA_PATH}/year={timestamp.year}/month={timestamp.month:02d}/day={timestamp.day:02d}")
-    output_dir.mkdir(parents=True, exist_ok=True)
+        output = {
+            "ingested_at": timestamp.isoformat(),
+            "city": city.name,
+            "latitude": city.latitude,
+            "longitude": city.longitude,
+            "country": city.country,
+            "raw_response": data,
+        }
 
-    city_name = city.name.lower().replace(" ", "")
-    filename = f"{city_name}_{date_str}_{time_str}.json"
-    filepath = output_dir / filename
+        # Upload to S3
+        s3_client.put_object(Bucket=bucket_name, Key=s3_key, Body=json.dumps(output), ContentType="application/json")
 
-    output = {
-        "ingested_at": timestamp.isoformat(),
-        "city": city.name,
-        "latitude": city.latitude,
-        "longitude": city.longitude,
-        "country": city.country,
-        "raw_response": data
-    }
+        logger.info(f"✅ Saved to S3: s3://{bucket_name}/{s3_key}")
+        return f"s3://{bucket_name}/{s3_key}"
 
-    with open(filepath, 'w') as f:
-        json.dump(output, f, indent=2)
-    
-    logger.info(f"✅ Saved locally to {filepath}")
-    return str(filepath)
-  
+    else:
+        # local: save to data/raw/
+        output_dir = Path(f"{RAW_DATA_PATH}/year={timestamp.year}/month={timestamp.month:02d}/day={timestamp.day:02d}")
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        city_name = city.name.lower().replace(" ", "")
+        filename = f"{city_name}_{date_str}_{time_str}.json"
+        filepath = output_dir / filename
+
+        output = {
+            "ingested_at": timestamp.isoformat(),
+            "city": city.name,
+            "latitude": city.latitude,
+            "longitude": city.longitude,
+            "country": city.country,
+            "raw_response": data,
+        }
+
+        with open(filepath, "w") as f:
+            json.dump(output, f, indent=2)
+
+        logger.info(f"✅ Saved locally to {filepath}")
+        return str(filepath)
+
 
 # Main pipeline orchestration
 def main():
@@ -158,12 +163,12 @@ def main():
 
         # Build API params
         params = {
-            'latitude': city.latitude,
-            'longitude': city.longitude,
-            'start_date': start_date,
-            'end_date': end_date,
-            'hourly': HOURLY_METRICS,
-            'timezone': 'GMT'
+            "latitude": city.latitude,
+            "longitude": city.longitude,
+            "start_date": start_date,
+            "end_date": end_date,
+            "hourly": HOURLY_METRICS,
+            "timezone": "GMT",
         }
 
         # Fetch data with retry
@@ -202,13 +207,14 @@ def main():
 
     if failure_count > 0:
         logger.warning("Some cities failed - check logs for details")
-    
+
     return {
-        'success_count': success_count,
-        'failure_count': failure_count,
-        'total_records': success_count * 30 * 24,
-        'cities_processed': [city.name for city in CITIES]
+        "success_count": success_count,
+        "failure_count": failure_count,
+        "total_records": success_count * 30 * 24,
+        "cities_processed": [city.name for city in CITIES],
     }
+
 
 if __name__ == "__main__":
     main()
