@@ -24,8 +24,8 @@ Stores API responses as-is for audit trail.
 | `id` | STRING | UUID for each ingestion | PRIMARY KEY, NOT NULL |
 | `ingested_at` | TIMESTAMP | When data was fetched | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
 | `location_name` | STRING | City name | NOT NULL |
-| `latitude` | FLOAT64 | Location latitude | NOT NULL |
-| `longitude` | FLOAT64 | Location longitude | NOT NULL |
+| `latitude` | DOUBLE | Location latitude | NOT NULL |
+| `longitude` | DOUBLE | Location longitude | NOT NULL |
 | `raw_json` | JSON | Full API response | NOT NULL |
 | `partition_date` | DATE | For Athena partitioning | NOT NULL |
 
@@ -36,14 +36,14 @@ Cleaned, flattened data.
 |--------|------|-------------|-------------|
 | `event_id` | STRING | UUID | PRIMARY KEY |
 | `location_name` | STRING | City name | NOT NULL |
-| `latitude` | FLOAT64 | Location | -90 to 90 |
-| `longitude` | FLOAT64 | Location | -180 to 180 |
+| `latitude` | DOUBLE | Location | -90 to 90 |
+| `longitude` | DOUBLE | Location | -180 to 180 |
 | `event_timestamp` | TIMESTAMP | Weather observation time (UTC) | NOT NULL |
-| `temperature_c` | FLOAT64 | Temperature (Celsius) | -60 to 60 |
-| `humidity_pct` | FLOAT64 | Relative humidity | 0 to 100 |
-| `precipitation_mm` | FLOAT64 | Hourly precipitation | 0 to 500 |
-| `wind_speed_kmh` | FLOAT64 | Wind speed | 0 to 400 |
-| `weather_code` | INT64 | WMO weather code | 0 to 99 |
+| `temperature_c` | DOUBLE | Temperature (Celsius) | -60 to 60 |
+| `humidity_pct` | DOUBLE | Relative humidity | 0 to 100 |
+| `precipitation_mm` | DOUBLE | Hourly precipitation | 0 to 500 |
+| `wind_speed_kmh` | DOUBLE | Wind speed | 0 to 400 |
+| `weather_code` | INT | WMO weather code | 0 to 99 |
 | `ingested_at` | TIMESTAMP | Processing timestamp | NOT NULL |
 
 ### 3.3 Mart Table (`fct_weather_hourly`)
@@ -54,14 +54,14 @@ Analytics-ready with quality flags.
 | `event_id` | STRING | Links to staging |
 | `location_name` | STRING | City |
 | `event_timestamp` | TIMESTAMP | Observation time |
-| `temperature_c` | FLOAT64 | Temperature |
-| `humidity_pct` | FLOAT64 | Humidity |
-| `precipitation_mm` | FLOAT64 | Rainfall |
-| `wind_speed_kmh` | FLOAT64 | Wind speed |
-| `weather_code` | INT64 | Weather code |
+| `temperature_c` | DOUBLE | Temperature |
+| `humidity_pct` | DOUBLE | Humidity |
+| `precipitation_mm` | DOUBLE | Rainfall |
+| `wind_speed_kmh` | DOUBLE | Wind speed |
+| `weather_code` | INT | Weather code |
 | `is_anomaly_temp` | BOOLEAN | Temp outside 3 std dev |
 | `is_anomaly_wind` | BOOLEAN | Wind outside 3 std dev |
-| `data_quality_score` | FLOAT64 | 0-100 score |
+| `data_quality_score` | DOUBLE | 0-100 score |
 | `dq_flags` | ARRAY<STRING> | List of issues (e.g., ["null_temp", "extreme_wind"]) |
 
 ## 4. Data Quality Rules
@@ -88,7 +88,7 @@ Analytics-ready with quality flags.
 
 ## 6. Cost Controls
 - **Athena partitioning**: By `partition_date` (prune queries)
-- **Clustering**: By `location_name`, `event_timestamp`
+- **S3 file layout**: Partitioned by year/month/day for Athena partition pruning
 - **Retention**: Keep raw data 90 days, marts 1 year
 
 ## 7. Change Log

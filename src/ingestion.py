@@ -146,6 +146,7 @@ def save_raw_data(city: City, data: dict, timestamp: datetime) -> str:
 
 # Main pipeline orchestration
 def main():
+    print("!!! REAL INGESTION RUNNING !!!")
     """Main pipeline orchestration"""
     logger.info("=" * 50)
     logger.info("Starting weather data ingestion pipeline")
